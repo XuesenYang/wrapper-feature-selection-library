@@ -1,0 +1,261 @@
+function [gbest,gbestval,fitcount]=BFOFS(psoOptions)
+switch dataset    
+    case 'isolet'
+ load('isolet.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'sonar'
+ load('sonar.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'Hill_Valley_without_noise_Training'
+ load('Hill.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'Epileptic Seizure Recognitio'
+ load('Epileptic Seizure Recognitio.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'redwine'
+ load('redwine.mat')
+    dn=1:1:10;
+    dnsize=10;
+    dnd=1;
+     case 'whitewine'
+ load('whitewine.mat')
+    dn=1:1:10;
+    dnsize=10;
+    dnd=1;
+    case 'MF'
+ load('MF.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'SPECTHeart'
+ load('SPECTHeart.mat')
+    dn=2:2:20;
+    dnsize=10;
+    dnd=2;
+     case 'Statlog'
+ load('Statlog.mat')
+    dn=2:2:20;
+    dnsize=10;
+    dnd=2;
+    case 'Madelon'
+ load('Madelon.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'Libras Movement'
+ load('Libras Movement.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'LSVT_voice_rehabilitation'
+ load('LSVT_voice_rehabilitation.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'drivFaceD'
+ load('drivFaceD.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+   case 'Urban land cover'
+ load('Urban land cover.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5; 
+    case 'MEU-Mobile KSD 2016'
+ load('MEU-Mobile KSD 2016.mat')
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5; 
+    case 'ionosphere'
+ load('ionosphere.mat')
+    dn=2:2:20;
+    dnsize=10;
+    dnd=2;
+     case 'ORL'
+ load('ORL.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'COIL20'
+ load('COIL20.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'orlraws10P'
+ load('orlraws10P.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'pixraw10P'
+ load('pixraw10P.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'warpAR10P'
+ load('warpAR10P.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'warpPIE10P'
+ load('warpPIE10P.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'Yale'
+ load('Yale.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'GLIOMA'
+ load('GLIOMA.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'lung_discrete'
+ load('lung_discrete.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+     case 'colon'
+ load('colon.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'lung'
+ load('lung.mat')
+    data=[X,Y];
+    dn=5:5:50;
+    dnsize=10;
+    dnd=5;
+    case 'ForestTypes'
+ load('ForestTypes.mat')
+    dn=2:2:20;
+    dnsize=10;
+    dnd=2;
+end 
+     group=data(:,end);
+     class=unique(data(:,end));
+     r=10;
+     for i=1:length(class)
+        sa=[];
+        sa=data((group==class(i)),:);
+        [number_of_smile_samples,~] = size(sa); % Column-observation
+        smile_subsample_segments1 = round(linspace(1,number_of_smile_samples,r)); % indices of subsample segmentation points    
+        data_group{i}=sa;
+        smile_subsample_segments{i}=smile_subsample_segments1;
+     end
+     psoOptions.Obj.lb=1;
+     psoOptions.Obj.ub=size(data,2)-1;
+     maxrun=30;
+     Best_fit=zeros(1,dnsize);
+     runs=30;%运行次数
+     Criterion=100;%迭代次数
+     Minimum=0;
+     Ccounter=0;%克服成功的标准
+     Mcounter=0;%克服成功的最低限度
+     CCcounter=zeros(runs,1);%逆累加平均生成准则
+     MMcounter=zeros(runs,1);%计数器累加平均生成到最小值
+     fidBFO=fopen('BFO.txt','w');%生成数据集合
+     Best_fit=zeros(1,dnsize);
+for gg=1:runs
+     Best_fitness=zeros(1,dnsize);
+for dnf=dn   
+success = 0; 
+iter = 0;   % 当前迭代次数
+itermax=100;
+fitcount = 0; % 函数评估计数器
+p=dnf; % 维度
+S=50;	%种群数
+Nc=10; % 趋化步数，每个细菌都相同
+Ns=4;   % 游动步长限制
+Nre=5;	 % 复制步骤步数
+Sr=S/2;	 % 一半的细菌消亡
+Ned=2; % 驱散次数
+ped=0.25; % 每个细菌将被消除/分散的概率
+flag=2; % 细菌之间无交流	
+P=[];
+%% 初始化种群
+P(:,:,:,:,:)=0*ones(p,S,Nc,Nre,Ned);  % 声明，储存细菌位置
+P(:,:,1,1,1)=rand(p, S)*(psoOptions.Obj.ub-psoOptions.Obj.lb) + psoOptions.Obj.lb;%初始化种群
+%% 更新迭代
+C=0*ones(S,Nre); % 声明，用来记录储存趋化步长，每次复制
+runlengthumaxnit=0.1;
+runlengthuminnit=0.01;
+C(:,1)=runlengthumaxnit*ones(S,1);%初始化趋化步长
+J=0*ones(S,Nc,Nre,Ned);%声明，储存
+JJ=[];
+Jhealth=0*ones(S,1);%健康的细菌
+nanda=1.7;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+for ell=1:Ned %消亡步数
+for k=1:Nre %重组步数
+for j=1:Nc %游动
+	for i=1:S  % 对于每个细菌
+        iter=(ell-1)*50+(k-1)*10+j;
+        tx=exp(-nanda*(iter/itermax)^2);
+        C(:,1)=(runlengthuminnit+tx*(runlengthumaxnit-runlengthuminnit))*ones(S,1);%%NDC
+%         C(:,1)=(runlengthuminnit+(itermax-iter)/itermax*(runlengthumaxnit-runlengthuminnit))*ones(S,1);%%LDC
+        J(i,j,k,ell)=classificationacc(data,class,group,r,P(:,i,j,k,ell)',smile_subsample_segments,data_group,sa,dnf); %计算适应度函数值 
+		J(i,j,k,ell)=J(i,j,k,ell)+bact_cellcell_attract_func(P(:,i,j,k,ell),P(:,:,j,k,ell),S,flag);	%细菌交流
+		Jlast=J(i,j,k,ell); %用来比较
+		Delta(:,i)=(2*round(rand(p,1))-1).*rand(p,1);%速度向量		
+		P(:,i,j+1,k,ell)=P(:,i,j,k,ell)+C(i,k)*Delta(:,i)/sqrt(Delta(:,i)'*Delta(:,i));%细菌趋化步骤，更新细菌位置
+		%J(i,j+1,k,ell)=nutrientsfunc(P(:,i,j+1,k,ell),flag); % 游动
+        J(i,j+1,k,ell)=classificationacc(data,class,group,r,P(:,i,j+1,k,ell)',smile_subsample_segments,data_group,sa,dnf); %计算适应度函数值 
+		J(i,j+1,k,ell)=J(i,j+1,k,ell)+bact_cellcell_attract_func(P(:,i,j+1,k,ell),P(:,:,j+1,k,ell),S,flag);	%细菌交流													
+		m=0; % 初始化游动次数
+		while m<Ns  %swimming循环 Ns=4			
+		  m=m+1;	%迭代器累加		
+			if J(i,j+1,k,ell)<Jlast  
+				Jlast=J(i,j+1,k,ell);%如果发现更好的位置，储存更好的位置			
+				P(:,i,j+1,k,ell)=P(:,i,j+1,k,ell)+C(i,k)*Delta(:,i)/sqrt(Delta(:,i)'*Delta(:,i));%更新细菌位置				
+				J(i,j+1,k,ell)=classificationacc(data,class,group,r,P(:,i,j+1,k,ell)',smile_subsample_segments,data_group,sa,dnf); %计算适应度函数值 	
+			else  % 如果没有发现更好的位置，结束swimming循环
+				m=Ns;
+            end		
+		end	
+    end
+end  %%%%趋化结束,输出的是多个细菌的适应度值，J(i,j+1,k,ell)中，i有50，j有多个，k=1,ell=1
+JJ=[JJ J(:,:,k,ell)];%储存函数值,JJ储存的是经历操作后的值，每步计算都被记录下来
+	Jhealth=sum(J(:,:,k,ell),2);  % 细菌健康值计算
+	[Jhealth,sortind]=sort(Jhealth); % 获取健康度排行索引
+	P(:,:,1,k+1,ell)=P(:,sortind,Nc+1,k,ell); % 对位置进行排序
+	C(:,k+1)=C(sortind,k); %对趋化步长进行排序
+	for i=1:Sr
+		P(:,i+Sr,1,k+1,ell)=P(:,i,1,k+1,ell); % 对位置分割复制
+		C(i+Sr,k+1)=C(i,k+1); 	% 趋化步长分割复制
+    end
+end  %%%% 重组结束
+	for m=1:S
+		if ped>rand  % 以ped的概率对每个细菌进行重新初始化
+            P(:,m,1,1,ell+1)=rand(p, 1)*(psoOptions.Obj.ub-psoOptions.Obj.lb) + psoOptions.Obj.lb;
+        else   %不进行驱散
+			P(:,m,1,1,ell+1)=P(:,m,1,Nre+1,ell);  % Bacteria that are not dispersed
+		end
+    end
+end  % 结束驱散循环
+y(1,dnf/dnd)=min(JJ);   %最佳的值
+end  %结束运行
+ Best_fit(gg,:)=y;
+end
+ BESTFIT=(1-mean(Best_fit))*100;
+ save('BFOFS','Best_fit','BESTFIT')
