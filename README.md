@@ -19,7 +19,7 @@ Sixteen datasets are described in fold dataset. They come from the UCI Machine L
 # Editing information      
 Editor:Xuesen Yang              
 Institution: Shenzhen University             
-E-mail:1348825332@qq.com or 2012110128@szu.edu.com            
+E-mail:1348825332@qq.com or 2012110128@email.szu.edu.cn            
 Edit date:2019-8-18   
 
   
